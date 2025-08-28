@@ -42,11 +42,7 @@ spec:
           - kitsune2-bootstrap-srv
           - --production
           - --listen
-          - "[::]:8080"  # HTTP port since TLS is terminated at ingress
-          - --sbd-limit-clients
-          - "50"  # Lower limits for testing
-          - --sbd-limit-bytes-per-sec
-          - "524288"  # 512KB/s per client
+          - "[::]:8080"
         env:
         - name: RUST_LOG
           valueFrom:

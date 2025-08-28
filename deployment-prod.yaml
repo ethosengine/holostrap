@@ -40,13 +40,16 @@ spec:
             - ALL
         command:
           - kitsune2-bootstrap-srv
-          - --production
           - --listen
           - "[::]:8080"  # HTTP port since TLS is terminated at ingress
           - --sbd-limit-clients
-          - "100"  # Tune based on expected load
-          - --sbd-limit-bytes-per-sec
-          - "1048576"  # 1MB/s per client
+          - "50"  # Lower limit for testing
+          - --sbd-limit-ip-kbps
+          - "500"  # 500 Kbps per IP for testing  # HTTP port since TLS is terminated at ingress
+          - --sbd-limit-clients
+          - "200"  # Reasonable limit for production
+          - --sbd-limit-ip-kbps
+          - "1000"  # 1 Mbps per IP
         env:
         - name: RUST_LOG
           valueFrom:
