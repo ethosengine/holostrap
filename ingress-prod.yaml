@@ -1,0 +1,33 @@
+# Production Ingress with TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: holostrap-prod-ingress
+  namespace: holochain
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Adjust based on your cert-manager setup
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"  # Bootstrap server uses HTTP internally
+    nginx.ingress.kubernetes.io/upstream-vhost: "holostrap.elohim.host"
+    # WebSocket support for signaling
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "holostrap-prod-service"
+spec:
+  ingressClassName: public
+  tls:
+  - hosts:
+    - holostrap.elohim.host
+    secretName: holostrap-prod-tls
+  rules:
+  - host: holostrap.elohim.host
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: holostrap-prod-service
+            port:
+              number: 8080

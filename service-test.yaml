@@ -1,0 +1,19 @@
+# Test Service
+apiVersion: v1
+kind: Service
+metadata:
+  name: holostrap-test-service
+  namespace: holochain
+  labels:
+    app: holostrap
+    environment: test
+spec:
+  selector:
+    app: holostrap
+    environment: test
+  ports:
+  - name: bootstrap
+    port: 8080
+    targetPort: 8080
+    protocol: TCP
+  type: ClusterIP

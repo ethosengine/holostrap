@@ -1,0 +1,79 @@
+# Test Bootstrap Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: holostrap-test
+  namespace: holochain
+  labels:
+    app: holostrap
+    environment: test
+spec:
+  replicas: 1  # Single replica for testing
+  selector:
+    matchLabels:
+      app: holostrap
+      environment: test
+  template:
+    metadata:
+      labels:
+        app: holostrap
+        environment: test
+    spec:
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534  # nobody user
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: bootstrap-server
+        image: ghcr.io/holochain/kitsune2_bootstrap_srv:v0.2.16
+        # Container security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
+        command:
+          - kitsune2-bootstrap-srv
+          - --production
+          - --listen
+          - "[::]:8080"  # HTTP port since TLS is terminated at ingress
+          - --sbd-limit-clients
+          - "50"  # Lower limits for testing
+          - --sbd-limit-bytes-per-sec
+          - "524288"  # 512KB/s per client
+        env:
+        - name: RUST_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: holochain-bootstrap-config
+              key: rust_log
+        ports:
+        - containerPort: 8080
+          name: bootstrap
+          protocol: TCP
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      # Can run on edge nodes for testing
+      nodeSelector:
+        node-type: edge

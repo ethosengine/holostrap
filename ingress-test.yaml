@@ -1,0 +1,33 @@
+# Test Ingress with TLS
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: holostrap-test-ingress
+  namespace: holochain
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Adjust based on your cert-manager setup
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"  # Bootstrap server uses HTTP internally
+    nginx.ingress.kubernetes.io/upstream-vhost: "test-holostrap.elohim.host"
+    # WebSocket support for signaling
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/websocket-services: "holostrap-test-service"
+spec:
+  ingressClassName: public
+  tls:
+  - hosts:
+    - test-holostrap.elohim.host
+    secretName: holostrap-test-tls
+  rules:
+  - host: test-holostrap.elohim.host
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: holostrap-test-service
+            port:
+              number: 8080

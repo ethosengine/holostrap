@@ -1,0 +1,10 @@
+# ConfigMap for shared configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: holochain-bootstrap-config
+  namespace: holochain
+data:
+  # Common configuration that can be shared between test and prod
+  rust_log: "info"
+  listen_address: "[::]:8443"

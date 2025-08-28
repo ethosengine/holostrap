@@ -1,0 +1,79 @@
+# Production Bootstrap Server Deployment
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: holostrap-prod
+  namespace: holochain
+  labels:
+    app: holostrap
+    environment: production
+spec:
+  replicas: 2  # For high availability
+  selector:
+    matchLabels:
+      app: holostrap
+      environment: production
+  template:
+    metadata:
+      labels:
+        app: holostrap
+        environment: production
+    spec:
+      # Security context for the pod
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534  # nobody user
+        fsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: bootstrap-server
+        image: ghcr.io/holochain/kitsune2_bootstrap_srv:v0.2.16
+        # Container security context
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 65534
+          capabilities:
+            drop:
+            - ALL
+        command:
+          - kitsune2-bootstrap-srv
+          - --production
+          - --listen
+          - "[::]:8080"  # HTTP port since TLS is terminated at ingress
+          - --sbd-limit-clients
+          - "100"  # Tune based on expected load
+          - --sbd-limit-bytes-per-sec
+          - "1048576"  # 1MB/s per client
+        env:
+        - name: RUST_LOG
+          valueFrom:
+            configMapKeyRef:
+              name: holochain-bootstrap-config
+              key: rust_log
+        ports:
+        - containerPort: 8080
+          name: bootstrap
+          protocol: TCP
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        livenessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          tcpSocket:
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 10
+      # Schedule on performance or edge nodes, avoid storage node
+      nodeSelector:
+        node-type: performance
