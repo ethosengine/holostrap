@@ -46,8 +46,6 @@ spec:
           - "50"  # Lower limit for testing
           - --sbd-limit-ip-kbps
           - "500"  # 500 Kbps per IP for testing  # HTTP port since TLS is terminated at ingress
-          - --sbd-limit-clients
-          - "200"  # Reasonable limit for production
           - --sbd-limit-ip-kbps
           - "1000"  # 1 Mbps per IP
         env:
