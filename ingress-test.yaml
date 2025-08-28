@@ -10,10 +10,20 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"  # Adjust based on your cert-manager setup
     nginx.ingress.kubernetes.io/backend-protocol: "HTTP"  # Bootstrap server uses HTTP internally
     nginx.ingress.kubernetes.io/upstream-vhost: "test-holostrap.elohim.host"
-    # WebSocket support for signaling
+    
+    # WebSocket Support Configuration
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
     nginx.ingress.kubernetes.io/websocket-services: "holostrap-test-service"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "4k"
+    
+    # Additional WebSocket headers (explicit upgrade support)
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-Port $server_port;
 spec:
   ingressClassName: public
   tls:
