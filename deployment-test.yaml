@@ -40,9 +40,13 @@ spec:
             - ALL
         command:
           - kitsune2-bootstrap-srv
-          - --production
           - --listen
           - "[::]:8080"
+          - --sbd-limit-clients
+          - "50"                  
+          - --sbd-limit-ip-kbps
+          - "500"                
+
         env:
         - name: RUST_LOG
           valueFrom:
